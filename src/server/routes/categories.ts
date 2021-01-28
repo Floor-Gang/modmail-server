@@ -21,7 +21,7 @@ export default class CategoriesRoute extends Route {
     this.router.get('/', this.getCategories.bind(this));
     this.router.get('/:categoryID/threads', this.getThreads.bind(this));
     this.router.get(
-      '/:categoryID}/threads/:threadID',
+      '/:categoryID/threads/:threadID',
       this.getThread.bind(this),
     );
     return this.router;
