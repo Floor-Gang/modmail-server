@@ -42,7 +42,7 @@ export default class ModmailServer {
         secure: false,
       },
     }));
-    this.app.use('/api/', oauth.getRouter());
+    this.app.use('/', oauth.getRouter());
 
     this.app.use('/api/self', this.authenticate.bind(this));
     this.app.use('/api/self', self.getRouter());

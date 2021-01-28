@@ -22,8 +22,8 @@ export default class OAuthRoute extends Route {
   }
 
   public getRouter(): Router {
-    this.router.get('/oauth', this.root.bind(this));
-    this.router.get('/oauth/callback', this.callback.bind(this));
+    this.router.get('/api/oauth', this.root.bind(this));
+    this.router.get('/api/oauth/callback', this.callback.bind(this));
 
     return this.router;
   }
