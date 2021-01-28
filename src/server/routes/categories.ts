@@ -43,8 +43,9 @@ export default class CategoriesRoute extends Route {
     }
 
     try {
+      // TODO: add caching
       const gotRes = await got(
-        'https://discord.com/api/v8/users/@me/guild',
+        'https://discord.com/api/v8/users/@me/guilds',
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
