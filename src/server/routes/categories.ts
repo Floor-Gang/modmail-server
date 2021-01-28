@@ -1,6 +1,6 @@
 import ModmailServer from '../server';
 import { Guild, RequestWithSession } from '../../common/models/types';
-import { Category } from 'modmail-types';
+import { Category, Thread, Message } from 'modmail-types';
 import Route from './route';
 import {
   NextFunction,
@@ -138,6 +138,17 @@ export default class CategoriesRoute extends Route {
     }
 
     const resData = await db.threads.getByCategory(categoryID);
+    const msgTasks: Promise<Message[]>[] = [];
+
+    for (let i = 0; i < resData.length; i++) {
+      const thread = resData[i];
+      const task = db.messages.fetchAll(thread.id);
+      msgTasks.push(task);
+      task.then((msgs: Message[]) => resData[i].messages = msgs);
+    }
+
+    await Promise.all(msgTasks);
+
     res.json(resData);
     res.end();
   }
