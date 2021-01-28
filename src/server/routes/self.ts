@@ -24,7 +24,7 @@ export default class SelfRoute extends Route {
     let { user } = req.session;
 
     if (!user) {
-      res.send('you are nobody');
+      res.status(403);
       res.end();
       return;
     }
@@ -37,7 +37,7 @@ export default class SelfRoute extends Route {
     } catch (err) {
       // TODO: proper logger
       console.error(err);
-      res.send('you are nobody');
+      res.status(403);
     } finally {
       res.end();
     }

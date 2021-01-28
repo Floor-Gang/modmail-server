@@ -12,6 +12,7 @@ import { DatabaseManager } from 'modmail-database';
 import { PoolConfig } from 'pg';
 import { RequestWithSession } from '../common/models/types';
 import { TEMP_WHITELIST } from '../globals';
+import Config from '../common/config';
 
 export default class ModmailServer {
   private readonly app: Application;
@@ -30,19 +31,19 @@ export default class ModmailServer {
    * @param {PoolConfig} config For the database
    * @param {number} port Port to listen on for the express server
    */
-  public async start(config: PoolConfig, port: number) {
-    ModmailServer.db = await DatabaseManager.getDB(config);
+  public async start(config: Config) {
+    ModmailServer.db = await DatabaseManager.getDB(config.database);
     const oauth = new OAuthRoute(this);
     const categories = new CategoriesRoute(this);
     const self = new SelfRoute(this);
 
     this.app.use(session({
-      secret: 'qwerty',
+      secret: config.sesPrivateKey,
       cookie: {
         secure: false,
       },
     }));
-    this.app.use('/api/', oauth.getRouter());
+    this.app.use('/', oauth.getRouter());
 
     this.app.use('/api/self', this.authenticate.bind(this));
     this.app.use('/api/self', self.getRouter());
@@ -51,9 +52,9 @@ export default class ModmailServer {
     this.app.use('/api/categories', categories.getRouter());
 
     this.app.listen(
-      port,
+      config.port,
       // TODO: proper logger
-      () => console.debug(`Started listening on port ${port}`),
+      () => console.debug(`Started listening on port ${config.port}`),
     );
   }
 
@@ -69,6 +70,9 @@ export default class ModmailServer {
     next: NextFunction,
   ) {
     const { user } = req.session;
+
+    console.debug(`Authentication ${user ? user.id : 'unknown'}`);
+    console.debug(req.session);
 
     if (user === undefined || !TEMP_WHITELIST.includes(user.id)) {
       res.status(401);
