@@ -3,6 +3,7 @@ import {
   Request,
   Response,
 } from 'express';
+import got from 'got/dist/source';
 import { RequestWithSession, User } from '../../common/models/types';
 import ModmailServer from '../server';
 import Route from './route';
@@ -50,14 +51,18 @@ export default class OAuthRoute extends Route {
     try {
       const client = this.modmail.getOAuth();
       const user = await client.code.getToken(req.url);
-      const data = user.data;
+      const gotRes = await got(
+        'https://discord.com/api/v8/users/@me',
+        {
+          headers: {
+            Authorization: `Bearer ${user.accessToken}`,
+          },
+        },
+      );
+      const data = JSON.parse(gotRes.body) as User;
 
       req.session.user = {
-        avatar: data.avatar,
-        bot: Boolean(data.bot),
-        discriminator: data.discriminator,
-        id: data.id,
-        username: data.username,
+        ...data,
         token: user.accessToken,
       };
       // TODO: Add proper logger
