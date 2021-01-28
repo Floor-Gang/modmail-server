@@ -30,10 +30,13 @@ export default class Config {
 
   public readonly port: number;
 
+  public readonly sesPrivateKey: string;
+
   private static LOCATION = './config.yml';
 
   constructor() {
     this.port = 80;
+    this.sesPrivateKey = '';
     this.oauth = {
       accessTokenUri: 'https://discord.com/api/oauth2/token',
       authorizationUri: 'https://discord.com/api/oauth2/authorize',

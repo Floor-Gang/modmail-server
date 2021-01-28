@@ -5,7 +5,7 @@ async function main() {
   const config = Config.getConfig();
   const server = new ModmailServer(config.oauth);
 
-  await server.start(config.database, config.port);
+  await server.start(config);
 }
 
 main().catch(console.error);
