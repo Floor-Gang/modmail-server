@@ -1,7 +1,7 @@
 {
   "name": "modmail-server",
   "version": "1.0.0",
-  "main": "dist/server.js",
+  "main": "dist/app.js",
   "repository": "https://github.com/Floor-Gang/modmail-server.git",
   "author": "Floor Gang <https://github.com/Floor-Gang>",
   "license": "GPL-3.0",
@@ -14,7 +14,7 @@
     "express-session": "^1.17.1",
     "got": "^11.8.1",
     "js-yaml": "^4.0.0",
-    "modmail-database": "github:Floor-Gang/modmail-database#125519bf02a9e8233876f03b7cf2be29db559263",
+    "modmail-database": "github:Floor-Gang/modmail-database#bbe3ee660fb851102718f676dfb4a65a6a98a0ef",
     "modmail-types": "github:Floor-Gang/modmail-types",
     "pg": "^8.5.1"
   },

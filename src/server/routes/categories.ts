@@ -1,6 +1,6 @@
 import ModmailServer from '../server';
-import { Guild, RequestWithSession, User } from '../../common/models/types';
-import { Category, Thread } from 'modmail-types';
+import { Guild, RequestWithSession } from '../../common/models/types';
+import { Category } from 'modmail-types';
 import Route from './route';
 import {
   NextFunction,
@@ -8,7 +8,7 @@ import {
   Router,
 } from 'express';
 import got from 'got/dist/source';
-import { CategoryResolvable } from 'modmail-database/src/models/types';
+import { CategoryResolvable } from 'modmail-database';
 
 export default class CategoriesRoute extends Route {
   constructor(mm: ModmailServer) {
