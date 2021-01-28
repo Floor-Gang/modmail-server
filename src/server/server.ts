@@ -72,6 +72,7 @@ export default class ModmailServer {
     const { user } = req.session;
 
     console.debug(`Authentication ${user ? user.id : 'unknown'}`);
+    console.debug(req.session);
 
     if (user === undefined || !TEMP_WHITELIST.includes(user.id)) {
       res.status(401);
