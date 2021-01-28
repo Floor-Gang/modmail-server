@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Response, Router } from 'express';
 import ModmailServer from '../server';
 
 export default class Route {
@@ -16,5 +16,28 @@ export default class Route {
 
   public getRouter(): Router {
     return this.router;
+  }
+
+  protected failBadReq(res: Response, context?: string) {
+    if (context) {
+      // TODO: Added proper logger
+      console.warn(context);
+    }
+    res.status(400);
+    res.end();
+  }
+
+  protected failUnknown(res: Response) {
+    // TODO: Add proper logger
+    console.error('How did we get here?');
+    res.status(500);
+    res.end();
+  }
+
+  protected failError(res: Response, err: Error) {
+    // TODO: Add proper logger
+    console.error(err);
+    res.status(500);
+    res.end();
   }
 }

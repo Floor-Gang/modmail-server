@@ -2,11 +2,10 @@ import {
   Router,
   Request,
   Response,
-  json,
 } from 'express';
+import { RequestWithSession, User } from '../../common/models/types';
 import ModmailServer from '../server';
 import Route from './route';
-
 
 export interface OAuthData {
   access_token: string;
@@ -36,7 +35,10 @@ export default class OAuthRoute extends Route {
     res.redirect(redirect);
   }
 
-  private async callback(req: Request, res: Response): Promise<void> {
+  private async callback(
+    req: RequestWithSession,
+    res: Response,
+  ): Promise<void> {
     const { code } = req.query;
 
     if (!code) {
@@ -48,9 +50,17 @@ export default class OAuthRoute extends Route {
     try {
       const client = this.modmail.getOAuth();
       const user = await client.code.getToken(req.url);
+      const data = user.data;
 
-      // @ts-ignore
-      req.session.user = user.data;
+      req.session.user = {
+        avatar: data.avatar,
+        bot: Boolean(data.bot),
+        discriminator: data.discriminator,
+        id: data.id,
+        username: data.username,
+        token: user.accessToken,
+      };
+      // TODO: Add proper logger
       req.session.save(console.error);
 
       res.redirect('/');
