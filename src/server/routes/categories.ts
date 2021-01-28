@@ -178,6 +178,7 @@ export default class CategoriesRoute extends Route {
     const resData = await db.threads.getByID(threadID);
 
     if (resData !== null) {
+      resData.messages = await db.messages.fetchAll(threadID);
       res.json(resData);
       res.end();
       return;
