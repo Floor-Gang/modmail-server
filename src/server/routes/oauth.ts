@@ -4,7 +4,7 @@ import {
   Response,
 } from 'express';
 import got from 'got/dist/source';
-import { RequestWithSession, User } from '../../common/models/types';
+import { Guild, RequestWithSession, User } from '../../common/models/types';
 import ModmailServer from '../server';
 import Route from './route';
 
@@ -51,7 +51,7 @@ export default class OAuthRoute extends Route {
     try {
       const client = this.modmail.getOAuth();
       const user = await client.code.getToken(req.url);
-      const gotRes = await got(
+      const userRes = await got(
         'https://discord.com/api/v8/users/@me',
         {
           headers: {
@@ -59,15 +59,25 @@ export default class OAuthRoute extends Route {
           },
         },
       );
-      const data = JSON.parse(gotRes.body) as User;
+      // TODO: add caching
+      const guildRes = await got(
+        'https://discord.com/api/v8/users/@me/guilds',
+        {
+          headers: {
+            Authorization: `Bearer ${user.accessToken}`,
+          }
+        }
+      );
+      const guildData: Guild[] = JSON.parse(guildRes.body);
+      const userData: User = JSON.parse(userRes.body);
 
+      req.session.guildIDs = guildData.map((guild) => guild.id);
       req.session.user = {
-        ...data,
+        ...userData,
         token: user.accessToken,
       };
       // TODO: Add proper logger
       req.session.save(console.error);
-
       res.redirect('/');
     } catch (e) {
       this.failError(res, e);

@@ -1,6 +1,6 @@
 import ModmailServer from '../server';
 import { Guild, RequestWithSession } from '../../common/models/types';
-import { Category, Thread, Message } from 'modmail-types';
+import { Category, Message } from 'modmail-types';
 import Route from './route';
 import {
   NextFunction,
@@ -17,7 +17,6 @@ export default class CategoriesRoute extends Route {
   }
 
   public getRouter(): Router {
-    this.router.use('/', this.getGuilds.bind(this));
     this.router.get('/', this.getCategories.bind(this));
     this.router.get('/:categoryID/threads', this.getThreads.bind(this));
     this.router.get(
@@ -25,41 +24,6 @@ export default class CategoriesRoute extends Route {
       this.getThread.bind(this),
     );
     return this.router;
-  }
-
-  /**
-   * Middle ware for getting a user's guilds
-   */
-  private async getGuilds(
-    req: RequestWithSession,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
-    const { user } = req.session;
-
-    if (user === undefined) {
-      this.failUnknown(res);
-      return;
-    }
-
-    try {
-      // TODO: add caching
-      const gotRes = await got(
-        'https://discord.com/api/v8/users/@me/guilds',
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          }
-        }
-      );
-      const data: Guild[] = JSON.parse(gotRes.body);
-      req.session.guilds = data;
-      // TODO: add proper logger
-      req.session.save(console.error);
-      next();
-    } catch (e) {
-      this.failError(res, e);
-    }
   }
 
   /**
@@ -72,9 +36,9 @@ export default class CategoriesRoute extends Route {
     req: RequestWithSession,
     res: Response,
   ): Promise<void> {
-    const { guilds } = req.session;
+    const { guildIDs } = req.session;
 
-    if (guilds === undefined) {
+    if (guildIDs === undefined) {
       this.failUnknown(res);
       return;
     }
@@ -82,11 +46,11 @@ export default class CategoriesRoute extends Route {
     const db = this.modmail.getDB();
     const fetchTasks: Promise<Category | null>[] = [];
 
-    for (let i = 0; i < guilds.length; i++) {
-      const guild = guilds[i];
+    for (let i = 0; i < guildIDs.length; i++) {
+      const guildID = guildIDs[i];
       const fetchTask = db.categories.fetch(
         CategoryResolvable.guild,
-        guild.id
+        guildID,
       );
       fetchTasks.push(fetchTask);
     }
@@ -114,15 +78,14 @@ export default class CategoriesRoute extends Route {
     req: RequestWithSession,
     res: Response,
   ): Promise<void> {
-    const { guilds } = req.session;
+    const { guildIDs } = req.session;
     const { categoryID } = req.params;
 
-    if (guilds === undefined) {
+    if (guildIDs === undefined) {
       this.failUnknown(res);
       return;
     }
 
-    const guildIDs = guilds.map((g) => g.id);
     const db = this.modmail.getDB();
     const category = await db.categories.fetch(
       CategoryResolvable.id,
@@ -165,15 +128,14 @@ export default class CategoriesRoute extends Route {
   ): Promise<void> {
     const { categoryID } = req.params;
     const { threadID } = req.params;
-    const { guilds } = req.session;
+    const { guildIDs } = req.session;
 
-    if (guilds === undefined) {
+    if (guildIDs === undefined) {
       this.failUnknown(res);
       return;
     }
 
     const db = this.modmail.getDB();
-    const guildIDs = guilds.map((g) => g.id);
     const category = await db.categories.fetch(
       CategoryResolvable.id,
       categoryID,

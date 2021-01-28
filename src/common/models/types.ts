@@ -22,7 +22,7 @@ export type Guild = {
 
 export interface ModmailSession extends Session {
   user?: User;
-  guilds?: Guild[];
+  guildIDs?: string[];
 }
 
 export interface RequestWithSession<a = any, b = any, c = any, d = any> extends Request<a, b, c, d> {
