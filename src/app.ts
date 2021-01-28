@@ -1,16 +1,11 @@
+import Config from './common/config';
 import ModmailServer from './server/server';
 
 async function main() {
-  const server = new ModmailServer({
-    accessTokenUri: 'https://discord.com/api/oauth2/token',
-    authorizationUri: 'https://discord.com/api/oauth2/authorize',
-    redirectUri: 'http://127.0.0.1/oauth/callback',
-    clientId: '',
-    clientSecret: '',
-    scopes: ['identify'],
-  });
+  const config = Config.getConfig();
+  const server = new ModmailServer(config.oauth);
 
-  await server.start(80);
+  await server.start(config.database, config.port);
 }
 
 main().catch(console.error);
