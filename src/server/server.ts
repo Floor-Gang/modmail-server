@@ -9,9 +9,7 @@ import session from 'express-session';
 import SelfRoute from './routes/self';
 import CategoriesRoute from './routes/categories';
 import { DatabaseManager } from 'modmail-database';
-import { PoolConfig } from 'pg';
 import { RequestWithSession } from '../common/models/types';
-import { TEMP_WHITELIST } from '../globals';
 import Config from '../common/config';
 
 export default class ModmailServer {
@@ -19,11 +17,14 @@ export default class ModmailServer {
 
   private readonly oauth: ClientOAuth2;
 
+  private readonly config: Config;
+
   private static db: DatabaseManager | null = null;
 
-  constructor(config: ClientOAuth2.Options) {
+  constructor(config: Config) {
     this.app = express();
-    this.oauth = new ClientOAuth2(config);
+    this.oauth = new ClientOAuth2(config.oauth);
+    this.config = config;
   }
 
   /**
@@ -31,14 +32,14 @@ export default class ModmailServer {
    * @param {PoolConfig} config For the database
    * @param {number} port Port to listen on for the express server
    */
-  public async start(config: Config) {
-    ModmailServer.db = await DatabaseManager.getDB(config.database);
+  public async start() {
+    ModmailServer.db = await DatabaseManager.getDB(this.config.database);
     const oauth = new OAuthRoute(this);
     const categories = new CategoriesRoute(this);
     const self = new SelfRoute(this);
 
     this.app.use(session({
-      secret: config.sesPrivateKey,
+      secret: this.config.sesPrivateKey,
       cookie: {
         secure: false,
       },
@@ -52,9 +53,9 @@ export default class ModmailServer {
     this.app.use('/api/categories', categories.getRouter());
 
     this.app.listen(
-      config.port,
+      this.config.port,
       // TODO: proper logger
-      () => console.debug(`Started listening on port ${config.port}`),
+      () => console.debug(`Started listening on port ${this.config.port}`),
     );
   }
 
@@ -71,7 +72,7 @@ export default class ModmailServer {
   ) {
     const { user } = req.session;
 
-    if (user === undefined || !TEMP_WHITELIST.includes(user.id)) {
+    if (user === undefined || !this.config.tempWhitelist.includes(user.id)) {
       res.status(401);
       res.end();
       return;

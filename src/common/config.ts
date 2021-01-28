@@ -32,9 +32,12 @@ export default class Config {
 
   public readonly sesPrivateKey: string;
 
+  public readonly tempWhitelist: string[];
+
   private static LOCATION = './config.yml';
 
   constructor() {
+    this.tempWhitelist = [''];
     this.port = 80;
     this.sesPrivateKey = '';
     this.oauth = {
