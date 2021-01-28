@@ -50,7 +50,11 @@ export default class ModmailServer {
     this.app.use('/api/categories', this.authenticate.bind(this));
     this.app.use('/api/categories', categories.getRouter());
 
-    this.app.listen(port);
+    this.app.listen(
+      port,
+      // TODO: proper logger
+      () => console.debug(`Started listening on port ${port}`),
+    );
   }
 
   /**
