@@ -16,7 +16,7 @@ export type OAuthConfig = {
 }
 
 export type DBConfig = {
-  readonly username: string;
+  readonly user: string;
   readonly password: string;
   readonly address: string;
   readonly port: number;
@@ -43,7 +43,7 @@ export default class Config {
       scopes: [''],
     };
     this.database = {
-      username: '',
+      user: '',
       password: '',
       address: '',
       port: 5432,

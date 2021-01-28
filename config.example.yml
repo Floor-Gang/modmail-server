@@ -7,7 +7,7 @@ oauth:
   clientSecret: ''
   scopes: [identify, guild]
 database:
-  username: ''
+  user: ''
   password: ''
   address: ''
   port: 5432
