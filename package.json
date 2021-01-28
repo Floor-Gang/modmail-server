@@ -14,7 +14,7 @@
     "express-session": "^1.17.1",
     "got": "^11.8.1",
     "js-yaml": "^4.0.0",
-    "modmail-database": "github:Floor-Gang/modmail-database",
+    "modmail-database": "github:Floor-Gang/modmail-database#884bd4c6648e1566aa198367a78f895cdad3217a",
     "modmail-types": "github:Floor-Gang/modmail-types",
     "pg": "^8.5.1"
   },
