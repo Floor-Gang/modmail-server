@@ -5,8 +5,7 @@ import {
 } from 'express';
 import ModmailServer from '../server';
 import Route from './route';
-import got from 'got';
-import { OAuthData } from './oauth';
+import { RequestWithSession } from '../../common/models/types';
 
 
 export default class SelfRoute extends Route {
@@ -21,31 +20,26 @@ export default class SelfRoute extends Route {
     return this.router;
   }
 
-  private async root(req: Request, res: Response) {
-    // @ts-ignore
-    const optUser = req.session.user;
+  private async root(req: RequestWithSession, res: Response) {
+    let { user } = req.session;
 
-    if (!optUser) {
+    if (!user) {
       res.send('you are nobody');
       res.end();
       return;
     }
 
     try {
-      const user = optUser as OAuthData;
-      const data = await got('https://discord.com/api/users/@me', {
-        headers: {
-          Authorization: `Bearer ${user.access_token}`,
-        }
-      });
-      console.log(data.body);
-      res.json(JSON.parse(data.body));
+      // @ts-ignore
+      delete user.token
+      console.log(user);
+      res.json(user);
     } catch (err) {
+      // TODO: proper logger
       console.error(err);
       res.send('you are nobody');
     } finally {
       res.end();
     }
-
   }
 }
