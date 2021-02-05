@@ -2,12 +2,14 @@ import { ServerResponse, ServerMessage } from 'modmail-types';
 import { Worker } from 'worker_threads';
 import { v1 as uuid } from 'uuid';
 import { MAX_RESPONSE_TIME } from './globals';
+import { BotConfig } from './common/config';
 
 export default class BotController {
   private readonly bot: Worker;
 
-  constructor(modmailLoc: string) {
-    this.bot = new Worker(modmailLoc);
+  constructor(botConf: BotConfig) {
+    process.env.CONFIG = botConf.config;
+    this.bot = new Worker(botConf.location);
   }
 
   public getRoles(guildID: string, memberID: string): Promise<string[]> {

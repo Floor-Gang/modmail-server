@@ -23,6 +23,11 @@ export type DBConfig = {
   readonly database: string;
 }
 
+export type BotConfig = {
+  location: string;
+  config: string;
+}
+
 export default class Config {
   public readonly oauth: OAuthConfig;
 
@@ -34,14 +39,17 @@ export default class Config {
 
   public readonly tempWhitelist: string[];
 
-  public readonly modmail: string;
+  public readonly modmail: BotConfig;
 
   private static LOCATION = './config.yml';
 
   constructor() {
     this.tempWhitelist = [''];
     this.port = 80;
-    this.modmail = '';
+    this.modmail = {
+      config: '',
+      location: '',
+    };
     this.sesPrivateKey = '';
     this.oauth = {
       accessTokenUri: 'https://discord.com/api/oauth2/token',
