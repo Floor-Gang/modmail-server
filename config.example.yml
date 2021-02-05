@@ -1,4 +1,4 @@
-# TODO: Added IPC between bot and server
+modmail: '/path/to/modmail/dist/app.js'
 tempWhitelist: ['']
 port: 80
 sesPrivateKey: 'random stuff'
