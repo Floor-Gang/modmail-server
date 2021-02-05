@@ -5,6 +5,7 @@ import {
   ServerMessage,
   WORKER_CALLS,
   MemberState,
+  GetAllMemberStatesReq,
 } from 'modmail-types';
 import { Worker } from 'worker_threads';
 import { v1 as uuid } from 'uuid';
@@ -39,6 +40,21 @@ export default class BotController {
     const resp = await this.transaction(task);
 
     return resp.data as MemberState;
+  }
+
+  public async getMembers(
+    guildID: string,
+    after='',
+    limit=1000,
+  ): Promise<MemberState[]> {
+    const task: GetAllMemberStatesReq = {
+      args: [guildID, after, limit],
+      task: WORKER_CALLS.getAllMembers,
+      id: uuid(),
+    }
+    const resp = await this.transaction(task);
+
+    return resp.data as MemberState[];
   }
 
   private transaction(req: ServerMessage): Promise<ServerResponse> {
