@@ -10,7 +10,7 @@ export default class MembersRoute extends Route {
   }
 
   public getRouter(): Router {
-    this.router.get('/members', this.getMembers.bind(this));
+    this.router.get('/:categoryID/members', this.getMembers.bind(this));
     this.router.get('/:memberID', this.getMember.bind(this));
     return this.router;
   }
@@ -19,12 +19,15 @@ export default class MembersRoute extends Route {
     req: RequestWithSession,
     res: Response,
   ): Promise<void> {
+    res.json({});
+    res.end();
   }
 
   private async getMembers(
     req: RequestWithSession,
     res: Response,
   ): Promise<void> {
-
+    res.json({});
+    res.end();
   }
 }

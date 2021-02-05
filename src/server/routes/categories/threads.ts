@@ -12,8 +12,8 @@ export default class ThreadsRoute extends Route {
   }
 
   public getRouter(): Router {
-    this.router.get('/threads', this.getThreads.bind(this));
-    this.router.get('/:threadID', this.getThread.bind(this));
+    this.router.get('/:categoryID/threads', this.getThreads.bind(this));
+    this.router.get('/:categoryID/:threadID', this.getThread.bind(this));
     return this.router;
   }
 
@@ -71,7 +71,6 @@ export default class ThreadsRoute extends Route {
     req: RequestWithSession,
     res: Response,
   ): Promise<void> {
-    console.log('test');
     const { guildIDs } = req.session;
     const { categoryID } = req.params;
 
