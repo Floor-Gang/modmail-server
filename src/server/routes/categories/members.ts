@@ -9,10 +9,6 @@ export default class MembersRoute extends Route {
     super(mm, 'categories', router);
   }
 
-  public getRouter(): Router {
-    return this.router;
-  }
-
   public async getMember(
     req: RequestWithCategory,
     res: Response,

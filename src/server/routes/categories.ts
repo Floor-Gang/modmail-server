@@ -1,5 +1,6 @@
 import ModmailServer from '../../server';
 import MembersRoute from './categories/members';
+import UsersRoute from './categories/users';
 import ThreadsRoute from './categories/threads';
 import { RequestWithCategory, RequestWithUser } from '../../common/models/types';
 import { Category, Message } from 'modmail-types';
@@ -20,6 +21,7 @@ export default class CategoriesRoute extends Route {
   public getRouter(): Router {
     const members = new MembersRoute(this.modmail);
     const threads = new ThreadsRoute(this.modmail);
+    const users = new UsersRoute(this.modmail);
 
     this.router.get('/', this.getCategories.bind(this));
 
@@ -29,6 +31,7 @@ export default class CategoriesRoute extends Route {
     this.router.get('/:categoryID/threads/:threadID', threads.getThread.bind(threads));
     this.router.get('/:categoryID/members', members.getMembers.bind(members));
     this.router.get('/:categoryID/members/:memberID', members.getMember.bind(members));
+    this.router.get('/:categoryID/users/:userID', users.getUser.bind(users));
     return this.router;
   }
 
