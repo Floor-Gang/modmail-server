@@ -29,9 +29,9 @@ export default class SelfRoute extends Route {
       return;
     }
     const bot = this.modmail.getBot();
-    const roles = await bot.getRoles('718433475828645928', user.id);
 
     try {
+      const roles = await bot.getRoles('718433475828645928', user.id);
       // @ts-ignore
       delete user.token
       // @ts-ignore
@@ -42,7 +42,7 @@ export default class SelfRoute extends Route {
     } catch (err) {
       // TODO: proper logger
       console.error(err);
-      res.status(403);
+      res.status(500);
     } finally {
       res.end();
     }
