@@ -35,7 +35,7 @@ export default class SelfRoute extends Route {
       // @ts-ignore
       delete user.token
       // @ts-ignore
-      user.roles = roles;
+      user.roles = roles || [];
 
       console.log(user);
       res.json(user);
