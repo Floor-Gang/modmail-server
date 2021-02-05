@@ -44,7 +44,6 @@ export default class BotController {
   private transaction(req: ServerMessage): Promise<ServerResponse> {
     return new Promise((res, rej) => {
       const callback = (msg: ServerResponse) => {
-        console.debug(msg);
         if (msg.id !== req.id) {
           return;
         }
