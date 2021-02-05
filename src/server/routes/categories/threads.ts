@@ -71,6 +71,7 @@ export default class ThreadsRoute extends Route {
     req: RequestWithSession,
     res: Response,
   ): Promise<void> {
+    console.log('test');
     const { guildIDs } = req.session;
     const { categoryID } = req.params;
 
