@@ -12,25 +12,33 @@ export default class BotController {
     this.bot = new Worker(botConf.location);
   }
 
-  public getRoles(guildID: string, memberID: string): Promise<string[]> {
+  public async getRoles(guildID: string, memberID: string): Promise<string[]> {
+    const task: ServerMessage = {
+      args: [guildID, memberID],
+      task: 'get_member_roles',
+      id: uuid(),
+    };
+    const resp = await this.transaction(task);
+
+    return resp.data as string[];
+  }
+
+  private transaction(req: ServerMessage): Promise<ServerResponse> {
     return new Promise((res, rej) => {
-      const task: ServerMessage = {
-        args: [guildID, memberID],
-        task: 'get_member_roles',
-        id: uuid(),
-      };
       const callback = (msg: ServerResponse) => {
         console.debug(msg);
-        if (msg.id !== task.id) {
+        if (msg.id !== req.id) {
           return;
         }
-        const resp = msg.data as string[];
-        console.debug(msg.data);
-        res(resp);
+        if (msg.data instanceof Error) {
+          rej(msg.data);
+        } else {
+          res(msg);
+        }
         this.bot.removeListener('done', callback);
       }
       this.bot.addListener('message', callback);
-      this.bot.postMessage(task);
+      this.bot.postMessage(req);
       setTimeout(() => {
         rej(new Error('Max response time was met, no data was provided.'));
         this.bot.removeListener('error', callback);
