@@ -5,7 +5,7 @@ import {
 } from 'express';
 import got from 'got/dist/source';
 import { Guild, RequestWithSession, User } from '../../common/models/types';
-import ModmailServer from '../server';
+import ModmailServer from '../../server';
 import Route from './route';
 
 export interface OAuthData {

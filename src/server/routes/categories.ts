@@ -1,4 +1,4 @@
-import ModmailServer from '../server';
+import ModmailServer from '../../server';
 import { Guild, RequestWithSession } from '../../common/models/types';
 import { Category, Message } from 'modmail-types';
 import Route from './route';

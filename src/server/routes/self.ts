@@ -3,7 +3,7 @@ import {
   Response,
   Router,
 } from 'express';
-import ModmailServer from '../server';
+import ModmailServer from '../../server';
 import Route from './route';
 import { RequestWithSession } from '../../common/models/types';
 

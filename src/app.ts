@@ -1,5 +1,5 @@
 import Config from './common/config';
-import ModmailServer from './server/server';
+import ModmailServer from './server';
 
 async function main() {
   const config = Config.getConfig();
