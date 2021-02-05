@@ -15,7 +15,7 @@
     "got": "^11.8.1",
     "js-yaml": "^4.0.0",
     "modmail-database": "github:Floor-Gang/modmail-database#f7815f244469718d94cea119eebce71d9541fb80",
-    "modmail-types": "github:Floor-Gang/modmail-types",
+    "modmail-types": "github:Floor-Gang/modmail-types#86ca13b51f704205518eb462d6ec9654f0b66c7b",
     "pg": "^8.5.1"
   },
   "devDependencies": {
