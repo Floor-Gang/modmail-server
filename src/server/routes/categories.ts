@@ -22,11 +22,13 @@ export default class CategoriesRoute extends Route {
     const threads = new ThreadsRoute(this.modmail);
 
     this.router.get('/', this.getCategories.bind(this));
-    this.router.use('/:categoryID', this.authenticate.bind(this));
 
+    this.router.use('/:categoryID', this.authenticate.bind(this));
     this.router.get('/:categoryID', this.getCategory.bind(this));
-    this.router.use('/:categoryID', members.getRouter());
-    this.router.get('/:categoryID', threads.getRouter());
+    this.router.use('/:categoryID/threads', threads.getThreads.bind(threads));
+    this.router.use('/:categoryID/threads/:threadID', threads.getThread.bind(threads));
+    this.router.use('/:categoryID/members', members.getMembers.bind(members));
+    this.router.get('/:categoryID/members/:memberID', members.getMember.bind(members));
     return this.router;
   }
 
