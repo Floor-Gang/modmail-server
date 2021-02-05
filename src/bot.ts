@@ -1,4 +1,11 @@
-import { ServerResponse, ServerMessage } from 'modmail-types';
+import {
+  GetMemberStateReq,
+  GetRolesReq,
+  ServerResponse,
+  ServerMessage,
+  WORKER_CALLS,
+  MemberState,
+} from 'modmail-types';
 import { Worker } from 'worker_threads';
 import { v1 as uuid } from 'uuid';
 import { MAX_RESPONSE_TIME } from './globals';
@@ -13,14 +20,25 @@ export default class BotController {
   }
 
   public async getRoles(guildID: string, memberID: string): Promise<string[]> {
-    const task: ServerMessage = {
+    const task: GetRolesReq = {
       args: [guildID, memberID],
-      task: 'get_member_roles',
+      task: WORKER_CALLS.getRoles,
       id: uuid(),
     };
     const resp = await this.transaction(task);
 
     return resp.data as string[];
+  }
+
+  public async getMember(guildID: string, memberID: string): Promise<MemberState> {
+    const task: GetMemberStateReq = {
+      args: [guildID, memberID],
+      task: WORKER_CALLS.getMember,
+      id: uuid(),
+    }
+    const resp = await this.transaction(task);
+
+    return resp.data as MemberState;
   }
 
   private transaction(req: ServerMessage): Promise<ServerResponse> {
