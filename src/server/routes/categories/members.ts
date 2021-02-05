@@ -10,7 +10,7 @@ export default class MembersRoute extends Route {
   }
 
   public getRouter(): Router {
-    this.router.get('/', this.getMembers.bind(this));
+    this.router.get('/members', this.getMembers.bind(this));
     this.router.get('/:memberID', this.getMember.bind(this));
     return this.router;
   }

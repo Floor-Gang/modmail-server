@@ -12,7 +12,7 @@ export default class ThreadsRoute extends Route {
   }
 
   public getRouter(): Router {
-    this.router.get('/', this.getThreads.bind(this));
+    this.router.get('/threads', this.getThreads.bind(this));
     this.router.get('/:threadID', this.getThread.bind(this));
     return this.router;
   }

@@ -10,7 +10,6 @@ import {
   Router,
 } from 'express';
 import { CategoryResolvable } from 'modmail-database';
-import { userInfo } from 'os';
 
 export default class CategoriesRoute extends Route {
   constructor(mm: ModmailServer) {
@@ -24,8 +23,10 @@ export default class CategoriesRoute extends Route {
 
     this.router.get('/', this.getCategories.bind(this));
     this.router.use('/:categoryID', this.authenticate.bind(this));
-    this.router.use('/:categoryID/members', members.getRouter());
-    this.router.get('/:categoryID/threads', threads.getRouter());
+
+    this.router.get('/:categoryID', this.getCategory.bind(this));
+    this.router.use('/:categoryID', members.getRouter());
+    this.router.get('/:categoryID', threads.getRouter());
     return this.router;
   }
 
@@ -105,6 +106,33 @@ export default class CategoriesRoute extends Route {
     });
 
     res.json(resData);
+    res.end();
+  }
+
+  /**
+   * GET /categories/:categoryID -> Category
+   * @param {RequestWithSession} req
+   * @param {Response} res
+   * @returns {Promise<void>}
+   */
+  private async getCategory(
+    req: RequestWithSession,
+    res: Response,
+  ): Promise<void> {
+    const { categoryID } = req.params;
+
+    const db = this.modmail.getDB();
+    const category = await db.categories.fetch(
+      CategoryResolvable.id,
+      categoryID,
+    );
+
+    if (category === null) {
+      this.failBadReq(res, `The category ID "${categoryID}" doesn't exist.`);
+      return;
+    }
+
+    res.json(category);
     res.end();
   }
 }
