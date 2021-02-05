@@ -9,7 +9,7 @@ import session from 'express-session';
 import SelfRoute from './server/routes/self';
 import CategoriesRoute from './server/routes/categories';
 import { DatabaseManager } from 'modmail-database';
-import { RequestWithSession } from './common/models/types';
+import { RequestWithUser } from './common/models/types';
 import Config from './common/config';
 import BotController from './bot';
 
@@ -65,12 +65,12 @@ export default class ModmailServer {
 
   /**
    * Check if they're logged in & attach their user data to the req object
-   * @param {RequestWithSession} req
+   * @param {RequestWithUser} req
    * @param {Response} res
    * @returns {Promise<void>}
    */
   public authenticate(
-    req: RequestWithSession,
+    req: RequestWithUser,
     res: Response,
     next: NextFunction,
   ) {
