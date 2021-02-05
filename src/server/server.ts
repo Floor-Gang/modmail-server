@@ -94,4 +94,8 @@ export default class ModmailServer {
     }
     throw new Error('getDB was called before starting ModmailServer');
   }
+
+  public getBot(): BotController {
+    return this.bot;
+  }
 }
