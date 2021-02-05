@@ -1,6 +1,6 @@
 import { Response, Router } from 'express';
 import { CategoryResolvable } from 'modmail-database';
-import { RequestWithSession } from '../../../common/models/types';
+import { RequestWithUser } from '../../../common/models/types';
 import ModmailServer from '../../../server';
 import Route from '../route';
 import { Message } from 'modmail-types';
@@ -17,12 +17,12 @@ export default class ThreadsRoute extends Route {
 
   /**
    * GET /categories/:categoryID/:threadID -> Thread
-   * @param {RequestWithSession} req
+   * @param {RequestWithUser} req
    * @param {Response} res
    * @returns {Promise<void>}
    */
   public async getThread(
-    req: RequestWithSession,
+    req: RequestWithUser,
     res: Response,
   ): Promise<void> {
     const { categoryID, threadID } = req.params;
@@ -60,13 +60,13 @@ export default class ThreadsRoute extends Route {
 
   /**
    * GET /api/categories/:categoryID -> Thread[]
-   * @param {RequestWithSession} req
+   * @param {RequestWithUser} req
    * @param {Response} res
    * @param {string} categoryID
    * @returns {Promise<void>}
    */
   public async getThreads(
-    req: RequestWithSession,
+    req: RequestWithUser,
     res: Response,
   ): Promise<void> {
     console.log('test');

@@ -1,5 +1,5 @@
 import { Response, Router } from 'express';
-import { RequestWithSession } from '../../../common/models/types';
+import { RequestWithCategory, RequestWithUser } from '../../../common/models/types';
 import ModmailServer from '../../../server';
 import Route from '../route';
 
@@ -14,15 +14,39 @@ export default class MembersRoute extends Route {
   }
 
   public async getMember(
-    req: RequestWithSession,
+    req: RequestWithCategory,
     res: Response,
   ): Promise<void> {
+    const { memberID } = req.params;
+    const { category } = req.session;
+
+    if (category === undefined) {
+      this.failBadReq(res);
+      return;
+    }
+
+    try {
+      const bot = this.modmail.getBot();
+      const member = await bot.getMember(category.guildID, memberID);
+
+      res.json(member);
+      res.end();
+    } catch (e) {
+      this.failBadReq(res, e);
+    }
   }
 
   public async getMembers(
-    req: RequestWithSession,
+    req: RequestWithCategory,
     res: Response,
   ): Promise<void> {
+    const { category } = req.session;
+
+    if (category === undefined) {
+      this.failBadReq(res);
+      return;
+    }
+    const bot = this.modmail.getBot();
 
   }
 }

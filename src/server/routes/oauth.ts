@@ -4,7 +4,7 @@ import {
   Response,
 } from 'express';
 import got from 'got/dist/source';
-import { Guild, RequestWithSession, User } from '../../common/models/types';
+import { Guild, RequestWithUser, User } from '../../common/models/types';
 import ModmailServer from '../../server';
 import Route from './route';
 
@@ -37,7 +37,7 @@ export default class OAuthRoute extends Route {
   }
 
   private async callback(
-    req: RequestWithSession,
+    req: RequestWithUser,
     res: Response,
   ): Promise<void> {
     const { code } = req.query;

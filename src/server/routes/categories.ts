@@ -1,7 +1,7 @@
 import ModmailServer from '../../server';
 import MembersRoute from './categories/members';
 import ThreadsRoute from './categories/threads';
-import { RequestWithSession } from '../../common/models/types';
+import { RequestWithCategory, RequestWithUser } from '../../common/models/types';
 import { Category, Message } from 'modmail-types';
 import Route from './route';
 import {
@@ -33,7 +33,7 @@ export default class CategoriesRoute extends Route {
   }
 
   private async authenticate(
-    req: RequestWithSession,
+    req: RequestWithCategory,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
@@ -56,6 +56,7 @@ export default class CategoriesRoute extends Route {
       this.failBadReq(res, "This category ID doesn't exist");
       return;
     }
+
     const member = await bot.getMember(
       cat.guildID,
       req.session.user.id,
@@ -67,17 +68,18 @@ export default class CategoriesRoute extends Route {
       return;
     }
 
+    req.session.category = cat;
     next();
   }
 
   /**
    * GET /categories -> Category[]
-   * @param {RequestWithSession} req
+   * @param {RequestWithUser} req
    * @param {Response} res
    * @returns {Promise<void>}
    */
   private async getCategories(
-    req: RequestWithSession,
+    req: RequestWithUser,
     res: Response,
   ): Promise<void> {
     const { guildIDs } = req.session;
@@ -113,12 +115,12 @@ export default class CategoriesRoute extends Route {
 
   /**
    * GET /categories/:categoryID -> Category
-   * @param {RequestWithSession} req
+   * @param {RequestWithUser} req
    * @param {Response} res
    * @returns {Promise<void>}
    */
   private async getCategory(
-    req: RequestWithSession,
+    req: RequestWithUser,
     res: Response,
   ): Promise<void> {
     const { categoryID } = req.params;

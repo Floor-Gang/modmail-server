@@ -1,6 +1,7 @@
 import { Snowflake, UserFlags } from 'discord.js';
 import { Request } from 'express';
 import { Session } from 'express-session';
+import { Category } from 'modmail-types';
 
 export type User = {
   avatar: string;
@@ -20,11 +21,19 @@ export type Guild = {
   features: string[];
 }
 
-export interface ModmailSession extends Session {
+export interface UserSession extends Session {
   user?: User;
   guildIDs?: string[];
 }
 
-export interface RequestWithSession<a = any, b = any, c = any, d = any> extends Request<a, b, c, d> {
-  session: ModmailSession;
+export interface CategorySession extends UserSession {
+  category?: Category;
+}
+
+export interface RequestWithUser<a = any, b = any, c = any, d = any> extends Request<a, b, c, d> {
+  session: UserSession;
+}
+
+export interface RequestWithCategory<a = any, b = any, c = any, d = any> extends Request<a, b, c, d> {
+  session: CategorySession;
 }
