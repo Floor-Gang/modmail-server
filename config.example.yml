@@ -1,7 +1,6 @@
 modmail:
   location: '/path/to/modmail/dist/app.js'
   config: '/path/to/modmail/config.yml'
-tempWhitelist: ['']
 port: 80
 sesPrivateKey: 'random stuff'
 oauth:

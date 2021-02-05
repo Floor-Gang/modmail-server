@@ -76,7 +76,7 @@ export default class ModmailServer {
   ) {
     const { user } = req.session;
 
-    if (user === undefined || !this.config.tempWhitelist.includes(user.id)) {
+    if (user === undefined) {
       res.status(401);
       res.end();
       return;
