@@ -6,6 +6,8 @@ import {
   WORKER_CALLS,
   MemberState,
   GetAllMemberStatesReq,
+  UserState,
+  GetUserStateReq,
 } from 'modmail-types';
 import { Worker } from 'worker_threads';
 import { v1 as uuid } from 'uuid';
@@ -18,6 +20,17 @@ export default class BotController {
   constructor(botConf: BotConfig) {
     process.env.CONFIG = botConf.config;
     this.bot = new Worker(botConf.location);
+  }
+
+  public async getUser(userID: string): Promise<UserState> {
+    const task: GetUserStateReq = {
+      args: [userID],
+      task: WORKER_CALLS.getUserState,
+      id: uuid(),
+    };
+    const resp = await this.transaction(task);
+
+    return resp.data as UserState;
   }
 
   public async getRoles(guildID: string, memberID: string): Promise<string[]> {
