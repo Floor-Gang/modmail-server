@@ -4,15 +4,18 @@ import express, {
   NextFunction,
   Response,
 } from 'express';
-import OAuthRoute from './routes/oauth';
+import OAuthRoute from './server/routes/oauth';
 import session from 'express-session';
-import SelfRoute from './routes/self';
-import CategoriesRoute from './routes/categories';
+import SelfRoute from './server/routes/self';
+import CategoriesRoute from './server/routes/categories';
 import { DatabaseManager } from 'modmail-database';
-import { RequestWithSession } from '../common/models/types';
-import Config from '../common/config';
+import { RequestWithUser } from './common/models/types';
+import Config from './common/config';
+import BotController from './bot';
 
 export default class ModmailServer {
+  private readonly bot: BotController;
+
   private readonly app: Application;
 
   private readonly oauth: ClientOAuth2;
@@ -23,6 +26,7 @@ export default class ModmailServer {
 
   constructor(config: Config) {
     this.app = express();
+    this.bot = new BotController(config.modmail);
     this.oauth = new ClientOAuth2(config.oauth);
     this.config = config;
   }
@@ -61,18 +65,18 @@ export default class ModmailServer {
 
   /**
    * Check if they're logged in & attach their user data to the req object
-   * @param {RequestWithSession} req
+   * @param {RequestWithUser} req
    * @param {Response} res
    * @returns {Promise<void>}
    */
   public authenticate(
-    req: RequestWithSession,
+    req: RequestWithUser,
     res: Response,
     next: NextFunction,
   ) {
     const { user } = req.session;
 
-    if (user === undefined || !this.config.tempWhitelist.includes(user.id)) {
+    if (user === undefined) {
       res.status(401);
       res.end();
       return;
@@ -89,5 +93,9 @@ export default class ModmailServer {
       return ModmailServer.db;
     }
     throw new Error('getDB was called before starting ModmailServer');
+  }
+
+  public getBot(): BotController {
+    return this.bot;
   }
 }
