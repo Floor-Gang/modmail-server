@@ -46,7 +46,15 @@ export default class MembersRoute extends Route {
       this.failBadReq(res);
       return;
     }
-    const bot = this.modmail.getBot();
 
+    try {
+      const bot = this.modmail.getBot();
+      const members = await bot.getMembers(category.guildID);
+
+      res.json(members);
+      res.end();
+    } catch (e) {
+      this.failBadReq(res, e);
+    }
   }
 }
