@@ -34,11 +34,14 @@ export default class Config {
 
   public readonly tempWhitelist: string[];
 
+  public readonly modmail: string;
+
   private static LOCATION = './config.yml';
 
   constructor() {
     this.tempWhitelist = [''];
     this.port = 80;
+    this.modmail = '';
     this.sesPrivateKey = '';
     this.oauth = {
       accessTokenUri: 'https://discord.com/api/oauth2/token',

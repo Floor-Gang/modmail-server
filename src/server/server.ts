@@ -11,8 +11,11 @@ import CategoriesRoute from './routes/categories';
 import { DatabaseManager } from 'modmail-database';
 import { RequestWithSession } from '../common/models/types';
 import Config from '../common/config';
+import BotController from '../bot';
 
 export default class ModmailServer {
+  private readonly bot: BotController;
+
   private readonly app: Application;
 
   private readonly oauth: ClientOAuth2;
@@ -23,6 +26,7 @@ export default class ModmailServer {
 
   constructor(config: Config) {
     this.app = express();
+    this.bot = new BotController(config.modmail);
     this.oauth = new ClientOAuth2(config.oauth);
     this.config = config;
   }
