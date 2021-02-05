@@ -20,10 +20,12 @@ export default class BotController {
         id: uuid(),
       };
       const callback = (msg: ServerResponse) => {
+        console.debug(msg);
         if (msg.id !== task.id) {
           return;
         }
         const resp = msg.data as string[];
+        console.debug(msg.data);
         res(resp);
         this.bot.removeListener('done', callback);
       }
