@@ -31,7 +31,7 @@ export default class SelfRoute extends Route {
     const bot = this.modmail.getBot();
 
     try {
-      const roles = await bot.getRoles('718433475828645928', user.id);
+      const roles = await bot.getRoles('806083557352144916', user.id);
       // @ts-ignore
       delete user.token
       // @ts-ignore
