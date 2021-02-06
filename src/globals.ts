@@ -1,1 +1,1 @@
-export const MAX_RESPONSE_TIME = 10000;
+export const MAX_RESPONSE_TIME = 60000;
