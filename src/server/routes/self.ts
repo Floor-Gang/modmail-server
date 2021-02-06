@@ -1,5 +1,4 @@
 import {
-  Request,
   Response,
   Router,
 } from 'express';
@@ -30,10 +29,6 @@ export default class SelfRoute extends Route {
     }
 
     try {
-      // @ts-ignore
-      delete user.token
-
-      console.log(user);
       res.json(user);
     } catch (err) {
       // TODO: proper logger
