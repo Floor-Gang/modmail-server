@@ -93,16 +93,22 @@ export default class ThreadsRoute extends Route {
     }
 
     const resData = await db.threads.getByCategory(categoryID);
-    const msgTasks: Promise<Message[]>[] = [];
+    const msgTasks: Promise<Message | null>[] = [];
 
     for (let i = 0; i < resData.length; i++) {
       const thread = resData[i];
-      const task = db.messages.fetchAll(thread.id);
+      const task = db.messages.fetchLast(thread.id);
       msgTasks.push(task);
-      task.then((msgs: Message[]) => resData[i].messages = msgs);
     }
 
-    await Promise.all(msgTasks);
+    const msgs = await Promise.all(msgTasks);
+
+    for (let i = 0; i < resData.length; i++) {
+      const msg = msgs[i];
+      if (msg !== null) {
+        resData[i].messages.push(msg);
+      }
+    }
 
     res.json(resData);
     res.end();
