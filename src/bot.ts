@@ -22,15 +22,19 @@ export default class BotController {
     this.bot = new Worker(botConf.location);
   }
 
-  public async getUser(userID: string): Promise<UserState> {
+  public async getUser(userID: string): Promise<UserState | null> {
     const task: GetUserStateReq = {
       args: [userID],
       task: WORKER_CALLS.getUserState,
       id: uuid(),
     };
-    const resp = await this.transaction(task);
 
-    return resp.data as UserState;
+    try {
+      const resp = await this.transaction(task);
+      return resp.data as UserState;
+    } finally { 
+      return null;
+    }
   }
 
   public async getRoles(guildID: string, memberID: string): Promise<string[]> {
