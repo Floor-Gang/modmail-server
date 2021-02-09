@@ -3,14 +3,14 @@ import MembersRoute from './categories/members';
 import UsersRoute from './categories/users';
 import ThreadsRoute from './categories/threads';
 import { RequestWithCategory, RequestWithUser } from '../../common/models/types';
-import { Category, Message } from 'modmail-types';
+import { Category, Message } from '@Floor-Gang/modmail-types';
 import Route from './route';
 import {
   NextFunction,
   Response,
   Router,
 } from 'express';
-import { CategoryResolvable } from 'modmail-database';
+import { CategoryResolvable } from '@Floor-Gang/modmail-database';
 
 export default class CategoriesRoute extends Route {
   constructor(mm: ModmailServer) {

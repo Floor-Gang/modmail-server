@@ -8,7 +8,7 @@ import OAuthRoute from './server/routes/oauth';
 import session from 'express-session';
 import SelfRoute from './server/routes/self';
 import CategoriesRoute from './server/routes/categories';
-import { DatabaseManager } from 'modmail-database';
+import { DatabaseManager } from '@Floor-Gang/modmail-database';
 import { RequestWithUser } from './common/models/types';
 import Config from './common/config';
 import BotController from './bot';

@@ -1,9 +1,9 @@
 import { Response, Router } from 'express';
-import { CategoryResolvable } from 'modmail-database';
+import { CategoryResolvable } from '@Floor-Gang/modmail-database';
 import { RequestWithUser } from '../../../common/models/types';
 import ModmailServer from '../../../server';
 import Route from '../route';
-import { Message } from 'modmail-types';
+import { Message } from '@Floor-Gang/modmail-types';
 
 export default class ThreadsRoute extends Route {
   constructor(mm: ModmailServer) {

@@ -1,7 +1,7 @@
 import { Snowflake, UserFlags } from 'discord.js';
 import { Request } from 'express';
 import { Session } from 'express-session';
-import { Category } from 'modmail-types';
+import { Category } from '@Floor-Gang/modmail-types';
 
 export type User = {
   avatar: string;

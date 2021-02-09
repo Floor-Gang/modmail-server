@@ -8,7 +8,7 @@ import {
   GetAllMemberStatesReq,
   UserState,
   GetUserStateReq,
-} from 'modmail-types';
+} from '@Floor-Gang/modmail-types';
 import { Worker } from 'worker_threads';
 import { v1 as uuid } from 'uuid';
 import { MAX_RESPONSE_TIME } from './globals';
