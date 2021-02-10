@@ -119,11 +119,11 @@ export default class ThreadsRoute extends Route {
     const bot = this.modmail.getBot();
     const usrTasks: Promise<UserState | null>[] = [];
 
-    let user = targets.next();
-    while (!user.done) {
-      const task = bot.getUser(user.value);
+    let userID = targets.next();
+    while (!userID.done) {
+      const task = bot.getUser(userID.value);
       usrTasks.push(task);
-      user = targets.next();
+      userID = targets.next();
     }
 
     const users = await Promise.all(usrTasks);
