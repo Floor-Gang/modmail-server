@@ -3,14 +3,13 @@ import MembersRoute from './categories/members';
 import UsersRoute from './categories/users';
 import ThreadsRoute from './categories/threads';
 import { RequestWithCategory, RequestWithUser } from '../../common/models/types';
-import { Category, Message } from '@Floor-Gang/modmail-types';
+import { Category } from '@Floor-Gang/modmail-types';
 import Route from './route';
 import {
   NextFunction,
   Response,
   Router,
 } from 'express';
-import { CategoryResolvable } from '@Floor-Gang/modmail-database';
 
 export default class CategoriesRoute extends Route {
   constructor(mm: ModmailServer) {
@@ -49,13 +48,10 @@ export default class CategoriesRoute extends Route {
     const { categoryID } = req.params;
     const bot = this.modmail.getBot();
     const pool = this.modmail.getDB();
-    const cat = await pool.categories.fetch(
-      CategoryResolvable.id,
-      categoryID,
-    );
+    const cat = await pool.categories.fetchByID(categoryID);
 
     if (cat === null) {
-      this.failBadReq(res, "This category ID doesn't exist");
+      this.failBadReq(res, 'This category ID doesn\'t exist');
       return;
     }
 
@@ -96,10 +92,7 @@ export default class CategoriesRoute extends Route {
 
     for (let i = 0; i < guildIDs.length; i++) {
       const guildID = guildIDs[i];
-      const fetchTask = db.categories.fetch(
-        CategoryResolvable.guild,
-        guildID,
-      );
+      const fetchTask = db.categories.fetchByGuild(guildID);
       fetchTasks.push(fetchTask);
     }
 
@@ -128,10 +121,7 @@ export default class CategoriesRoute extends Route {
     const { categoryID } = req.params;
 
     const db = this.modmail.getDB();
-    const category = await db.categories.fetch(
-      CategoryResolvable.id,
-      categoryID,
-    );
+    const category = await db.categories.fetchByID(categoryID);
 
     if (category === null) {
       this.failBadReq(res, `The category ID "${categoryID}" doesn't exist.`);

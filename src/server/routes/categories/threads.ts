@@ -1,9 +1,8 @@
 import { Response, Router } from 'express';
-import { CategoryResolvable } from '@Floor-Gang/modmail-database';
 import { RequestWithUser } from '../../../common/models/types';
 import ModmailServer from '../../../server';
 import Route from '../route';
-import { 
+import {
   Category,
   Message,
   Thread,
@@ -55,7 +54,7 @@ export default class ThreadsRoute extends Route {
 
     // get user cache
     const targets = new Set<string>();
-    
+
     for (let i = 0; i < thread.messages.length; ++i) {
       const msg = thread.messages[i];
 
@@ -174,10 +173,7 @@ export default class ThreadsRoute extends Route {
     }
 
     const db = this.modmail.getDB();
-    const category = await db.categories.fetch(
-      CategoryResolvable.id,
-      categoryID,
-    );
+    const category = await db.categories.fetchByID(categoryID);
 
     if (category === null || !guildIDs.includes(category.guildID)) {
       this.failBadReq(
