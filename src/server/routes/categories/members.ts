@@ -8,7 +8,7 @@ import Route from '../route';
 export default class MembersRoute extends Route {
   constructor(mm: ModmailServer) {
     const router = Router();
-    super(mm, 'categories', router);
+    super(mm, 'members', router);
   }
 
   public async getMembers(

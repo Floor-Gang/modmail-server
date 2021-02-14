@@ -10,6 +10,8 @@ import {
   Response,
   Router,
 } from 'express';
+import RolesRoute from './categories/roles';
+import ChannelsRoute from './categories/channels';
 
 export default class CategoriesRoute extends Route {
   constructor(mm: ModmailServer) {
@@ -20,16 +22,33 @@ export default class CategoriesRoute extends Route {
   public getRouter(): Router {
     const members = new MembersRoute(this.modmail);
     const threads = new ThreadsRoute(this.modmail);
+    const roles = new RolesRoute(this.modmail);
+    const channels = new ChannelsRoute(this.modmail);
     const users = new UsersRoute(this.modmail);
 
     this.router.get('/', this.getCategories.bind(this));
-
     this.router.use('/:categoryID', this.authenticate.bind(this));
     this.router.get('/:categoryID', this.getCategory.bind(this));
+
+    // Thread Endpoints
     this.router.get('/:categoryID/threads', threads.getThreads.bind(threads));
     this.router.get('/:categoryID/threads/:threadID', threads.getThread.bind(threads));
+
+    // Member & User states
     this.router.get('/:categoryID/members', members.getMembers.bind(members));
     this.router.get('/:categoryID/users/:userID', users.getUser.bind(users));
+
+    // Channel states
+    this.router.get(
+      '/:categoryID/channels/:channelID',
+      channels.getChannel.bind(channels),
+    );
+
+    // Role states
+    this.router.get(
+      ':categoryID/roles/:roleID',
+      roles.getRole.bind(roles),
+    );
     return this.router;
   }
 

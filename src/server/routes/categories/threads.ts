@@ -1,9 +1,8 @@
 import { Response, Router } from 'express';
-import { RequestWithUser } from '../../../common/models/types';
+import { RequestWithCategory, RequestWithUser } from '../../../common/models/types';
 import ModmailServer from '../../../server';
 import Route from '../route';
 import {
-  Category,
   Message,
   Thread,
   UserState,
@@ -13,11 +12,7 @@ import {
 export default class ThreadsRoute extends Route {
   constructor(mm: ModmailServer) {
     const router = Router();
-    super(mm, 'categories', router);
-  }
-
-  public getRouter(): Router {
-    return this.router;
+    super(mm, 'threads', router);
   }
 
   /**
@@ -27,20 +22,22 @@ export default class ThreadsRoute extends Route {
    * @returns {Promise<void>}
    */
   public async getThread(
-    req: RequestWithUser,
+    req: RequestWithCategory,
     res: Response,
   ): Promise<void> {
-    const { categoryID, threadID } = req.params;
-    const { guildIDs } = req.session;
-
-    const category = await this.getCat(req, res);
+    const { category } = req.session;
+    const { threadID } = req.params;
+    if (category === undefined) {
+      res.status(500);
+      res.end();
+      return;
+    }
 
     if (category === null) {
       return;
     }
 
     const db = this.modmail.getDB();
-    const bot = this.modmail.getBot();
     const thread = await db.threads.getByID(threadID);
 
     if (thread === null) {
@@ -48,7 +45,6 @@ export default class ThreadsRoute extends Route {
       res.end();
       return;
     }
-
 
     thread.messages = await db.messages.fetchAll(threadID);
 
@@ -74,22 +70,22 @@ export default class ThreadsRoute extends Route {
    * GET /api/categories/:categoryID -> ThreadsResponse
    * @param {RequestWithUser} req
    * @param {Response} res
-   * @param {string} categoryID
    * @returns {Promise<void>}
    */
   public async getThreads(
-    req: RequestWithUser,
+    req: RequestWithCategory,
     res: Response,
   ): Promise<void> {
-    const { categoryID } = req.params;
-    const db = this.modmail.getDB();
-    const category = await this.getCat(req, res);
-
-    if (category === null) {
+    const { category } = req.session;
+    if (category === undefined) {
+      res.status(500);
+      res.end();
       return;
     }
 
-    let threads = await db.threads.getByCategory(categoryID);
+    const db = this.modmail.getDB();
+
+    let threads = await db.threads.getByCategory(category.id);
     threads = await this.getLastMessages(threads);
     let targets = new Set<string>();
 
@@ -158,31 +154,5 @@ export default class ThreadsRoute extends Route {
     }
 
     return threads;
-  }
-
-  private async getCat(
-    req: RequestWithUser,
-    res: Response,
-  ): Promise<Category | null> {
-    const { guildIDs } = req.session;
-    const { categoryID } = req.params;
-
-    if (guildIDs === undefined) {
-      this.failUnknown(res);
-      return null;
-    }
-
-    const db = this.modmail.getDB();
-    const category = await db.categories.fetchByID(categoryID);
-
-    if (category === null || !guildIDs.includes(category.guildID)) {
-      this.failBadReq(
-        res,
-        "The category requested doesn't exist or the user isn't in it",
-      );
-      return null;
-    }
-
-    return category;
   }
 }
