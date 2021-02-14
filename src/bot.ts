@@ -31,8 +31,8 @@ export default class BotController {
 
     try {
       const resp = await this.transaction(task);
-      return resp.data as UserState;
-    } finally { 
+      return resp.data;
+    } finally {
       return null;
     }
   }
