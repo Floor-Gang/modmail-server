@@ -11,15 +11,20 @@ import {
 } from '@Floor-Gang/modmail-types';
 import { Worker } from 'worker_threads';
 import { v1 as uuid } from 'uuid';
-import { MAX_RESPONSE_TIME } from './globals';
+import { MAX_LISTENERS, MAX_RESPONSE_TIME } from './globals';
+import { Semaphore } from 'async-mutex';
 import { BotConfig } from './common/config';
 
 export default class BotController {
   private readonly bot: Worker;
 
+  private readonly semaphore: Semaphore;
+
   constructor(botConf: BotConfig) {
     process.env.CONFIG = botConf.config;
     this.bot = new Worker(botConf.location);
+    this.semaphore = new Semaphore(MAX_LISTENERS);
+    this.bot.setMaxListeners(MAX_LISTENERS);
   }
 
   public async getUser(userID: string): Promise<UserState | null> {
@@ -34,9 +39,8 @@ export default class BotController {
       return resp.data;
     } catch (e) {
       console.log('An error has occurred\n', e);
+      return null;
     }
-
-    return null;
   }
 
   public async getRoles(guildID: string, memberID: string): Promise<string[]> {
@@ -76,25 +80,33 @@ export default class BotController {
     return resp.data as MemberState[];
   }
 
-  private transaction(req: ServerMessage): Promise<ServerResponse> {
-    return new Promise((res, rej) => {
-      const callback = (msg: ServerResponse) => {
-        if (msg.id !== req.id) {
-          return;
-        }
-        if (msg.data instanceof Error) {
-          rej(msg.data);
-        } else {
-          res(msg);
-        }
-        this.bot.removeListener('done', callback);
-      };
-      this.bot.addListener('message', callback);
-      this.bot.postMessage(req);
-      setTimeout(() => {
-        rej(new Error('Max response time was met, no data was provided.'));
-        this.bot.removeListener('error', callback);
-      }, MAX_RESPONSE_TIME);
-    });
+  private async transaction(req: ServerMessage): Promise<ServerResponse> {
+    const [, release] = await this.semaphore.acquire();
+    try {
+      const result = await new Promise<ServerResponse>((res, rej) => {
+        const callback = (msg: ServerResponse) => {
+          if (msg.id !== req.id) {
+            return;
+          }
+          if (msg.data instanceof Error) {
+            rej(msg.data);
+          } else {
+            res(msg);
+          }
+          this.bot.removeListener('done', callback);
+        };
+        this.bot.addListener('message', callback);
+        this.bot.postMessage(req);
+        setTimeout(() => {
+          rej(new Error('Max response time was met, no data was provided.'));
+          this.bot.removeListener('error', callback);
+        }, MAX_RESPONSE_TIME);
+      });
+      release();
+      return result;
+    } finally {
+      release();
+    }
   }
+
 }
