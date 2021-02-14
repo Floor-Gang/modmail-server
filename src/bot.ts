@@ -7,7 +7,10 @@ import {
   MemberState,
   GetAllMemberStatesReq,
   UserState,
-  GetUserStateReq,
+  GetStateReq,
+  ChannelState,
+  RoleState,
+  GetStateRes,
 } from '@Floor-Gang/modmail-types';
 import { Worker } from 'worker_threads';
 import { v1 as uuid } from 'uuid';
@@ -27,22 +30,37 @@ export default class BotController {
     this.bot.setMaxListeners(MAX_LISTENERS);
   }
 
+  public async getChannel(
+    channelID: string,
+    cacheOnly = false,
+  ): Promise<ChannelState | null> {
+    return this.getState<ChannelState>(
+      WORKER_CALLS.getChannel,
+      channelID,
+      cacheOnly,
+    );
+  }
+
+  public async getRole(
+    roleID: string,
+    cacheOnly = false,
+  ): Promise<RoleState | null> {
+    return this.getState<RoleState>(
+      WORKER_CALLS.getRole,
+      roleID,
+      cacheOnly,
+    );
+  }
+
   public async getUser(
     userID: string,
     cacheOnly = false,
   ): Promise<UserState | null> {
-    const task: GetUserStateReq = {
-      args: [userID, cacheOnly],
-      task: WORKER_CALLS.getUserState,
-      id: uuid(),
-    };
-
-    try {
-      const resp = await this.transaction(task);
-      return resp.data;
-    } catch (e) {
-      return null;
-    }
+    return this.getState<UserState>(
+      WORKER_CALLS.getUserState,
+      userID,
+      cacheOnly,
+    );
   }
 
   public async getRoles(guildID: string, memberID: string): Promise<string[]> {
@@ -82,6 +100,28 @@ export default class BotController {
     return resp.data as MemberState[];
   }
 
+  private async getState<T>(
+    apiCall: string,
+    id: string,
+    cacheOnly = false,
+  ): Promise<T | null> {
+    const task: GetStateReq = {
+      args: [id, cacheOnly],
+      task: apiCall,
+      id: uuid(),
+    };
+
+    try {
+      const resp: GetStateRes<T> = await this.transaction(task);
+      return resp.data;
+    } catch (e) {
+      if (!e.message.includes('Not in cache')) {
+        console.error(`[${task.id}] An error has occurred\n`, e);
+      }
+      return null;
+    }
+  }
+
   private async transaction(req: ServerMessage): Promise<ServerResponse> {
     const [, release] = await this.semaphore.acquire();
     try {
@@ -110,5 +150,4 @@ export default class BotController {
       release();
     }
   }
-
 }
