@@ -32,9 +32,11 @@ export default class BotController {
     try {
       const resp = await this.transaction(task);
       return resp.data;
-    } finally {
-      return null;
+    } catch (e) {
+      console.log('An error has occurred\n', e);
     }
+
+    return null;
   }
 
   public async getRoles(guildID: string, memberID: string): Promise<string[]> {
@@ -53,7 +55,7 @@ export default class BotController {
       args: [guildID, memberID],
       task: WORKER_CALLS.getMember,
       id: uuid(),
-    }
+    };
     const resp = await this.transaction(task);
 
     return resp.data as MemberState;
@@ -61,14 +63,14 @@ export default class BotController {
 
   public async getMembers(
     guildID: string,
-    after='',
-    limit=1000,
+    after = '',
+    limit = 1000,
   ): Promise<MemberState[]> {
     const task: GetAllMemberStatesReq = {
       args: [guildID, after, limit],
       task: WORKER_CALLS.getAllMembers,
       id: uuid(),
-    }
+    };
     const resp = await this.transaction(task);
 
     return resp.data as MemberState[];
@@ -86,7 +88,7 @@ export default class BotController {
           res(msg);
         }
         this.bot.removeListener('done', callback);
-      }
+      };
       this.bot.addListener('message', callback);
       this.bot.postMessage(req);
       setTimeout(() => {
