@@ -27,9 +27,12 @@ export default class BotController {
     this.bot.setMaxListeners(MAX_LISTENERS);
   }
 
-  public async getUser(userID: string): Promise<UserState | null> {
+  public async getUser(
+    userID: string,
+    cacheOnly = false,
+  ): Promise<UserState | null> {
     const task: GetUserStateReq = {
-      args: [userID],
+      args: [userID, cacheOnly],
       task: WORKER_CALLS.getUserState,
       id: uuid(),
     };
@@ -38,7 +41,6 @@ export default class BotController {
       const resp = await this.transaction(task);
       return resp.data;
     } catch (e) {
-      console.log('An error has occurred\n', e);
       return null;
     }
   }

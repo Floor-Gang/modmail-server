@@ -120,7 +120,7 @@ export default class ThreadsRoute extends Route {
 
     let userID = targets.next();
     while (!userID.done) {
-      const task = bot.getUser(userID.value);
+      const task = bot.getUser(userID.value, true);
       usrTasks.push(task);
       userID = targets.next();
     }
