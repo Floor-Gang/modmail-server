@@ -46,7 +46,7 @@ export default class CategoriesRoute extends Route {
 
     // Role states
     this.router.get(
-      ':categoryID/roles/:roleID',
+      '/:categoryID/roles/:roleID',
       roles.getRole.bind(roles),
     );
     return this.router;
