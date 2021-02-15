@@ -2,12 +2,7 @@ import { Response, Router } from 'express';
 import { RequestWithCategory, RequestWithUser } from '../../../common/models/types';
 import ModmailServer from '../../../server';
 import Route from '../route';
-import {
-  Message,
-  Thread,
-  UserState,
-  UserStateCache,
-} from '@Floor-Gang/modmail-types';
+import { Message, RoleLevel, Thread, UserState, UserStateCache, } from '@Floor-Gang/modmail-types';
 
 export default class ThreadsRoute extends Route {
   constructor(mm: ModmailServer) {
@@ -26,8 +21,9 @@ export default class ThreadsRoute extends Route {
     res: Response,
   ): Promise<void> {
     const { category } = req.session;
+    const { member } = req.session;
     const { threadID } = req.params;
-    if (category === undefined) {
+    if (member === undefined || category === undefined) {
       res.status(500);
       res.end();
       return;
@@ -43,6 +39,11 @@ export default class ThreadsRoute extends Route {
     if (thread === null) {
       res.status(404);
       res.end();
+      return;
+    }
+
+    if (thread.isAdminOnly && member.role !== RoleLevel.Admin) {
+      this.failBadReq(res, 'Not an admin');
       return;
     }
 
@@ -77,7 +78,8 @@ export default class ThreadsRoute extends Route {
     res: Response,
   ): Promise<void> {
     const { category } = req.session;
-    if (category === undefined) {
+    const { member } = req.session;
+    if (category === undefined || member === undefined) {
       res.status(500);
       res.end();
       return;
@@ -86,6 +88,10 @@ export default class ThreadsRoute extends Route {
     const db = this.modmail.getDB();
 
     let threads = await db.threads.getByCategory(category.id);
+    threads = threads.filter((thr) => {
+      return (thr.isAdminOnly && member.role === RoleLevel.Admin)
+        || (!thr.isAdminOnly);
+    })
     threads = await this.getLastMessages(threads);
     let targets = new Set<string>();
 

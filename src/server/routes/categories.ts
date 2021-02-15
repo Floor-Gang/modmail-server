@@ -3,13 +3,9 @@ import MembersRoute from './categories/members';
 import UsersRoute from './categories/users';
 import ThreadsRoute from './categories/threads';
 import { RequestWithCategory, RequestWithUser } from '../../common/models/types';
-import { Category } from '@Floor-Gang/modmail-types';
+import { Category, RoleLevel } from '@Floor-Gang/modmail-types';
 import Route from './route';
-import {
-  NextFunction,
-  Response,
-  Router,
-} from 'express';
+import { NextFunction, Response, Router, } from 'express';
 import RolesRoute from './categories/roles';
 import ChannelsRoute from './categories/channels';
 
@@ -65,6 +61,7 @@ export default class CategoriesRoute extends Route {
     }
 
     const { categoryID } = req.params;
+    const { user } = req.session;
     const bot = this.modmail.getBot();
     const pool = this.modmail.getDB();
     const cat = await pool.categories.fetchByID(categoryID);
@@ -85,6 +82,11 @@ export default class CategoriesRoute extends Route {
       return;
     }
 
+
+    req.session.member = {
+      ...user,
+      role: member.role === 'mod' ? RoleLevel.Mod : RoleLevel.Admin,
+    };
     req.session.category = cat;
     next();
   }

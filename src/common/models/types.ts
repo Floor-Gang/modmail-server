@@ -1,7 +1,7 @@
-import { Snowflake, UserFlags } from 'discord.js';
+import { Snowflake } from 'discord.js';
 import { Request } from 'express';
 import { Session } from 'express-session';
-import { Category } from '@Floor-Gang/modmail-types';
+import { Category, RoleLevel } from '@Floor-Gang/modmail-types';
 
 export type User = {
   avatar: string;
@@ -10,6 +10,10 @@ export type User = {
   id: Snowflake;
   username: string;
   token: string;
+}
+
+export interface Member extends User {
+  role: RoleLevel;
 }
 
 export type Guild = {
@@ -28,6 +32,7 @@ export interface UserSession extends Session {
 
 export interface CategorySession extends UserSession {
   category?: Category;
+  member?: Member,
 }
 
 export interface RequestWithUser<a = any, b = any, c = any, d = any> extends Request<a, b, c, d> {
