@@ -20,4 +20,16 @@ export default class UsersRoute extends Route {
 
     await this.sendState<UserState>(res, user);
   }
+
+  public async getHistory(
+    req: RequestWithCategory,
+    res: Response,
+  ): Promise<void> {
+    const { categoryID, userID } = req.params;
+    const pool = this.modmail.getDB();
+    const data = await pool.threads.history(userID, categoryID);
+
+    res.json(data);
+    res.end();
+  }
 }

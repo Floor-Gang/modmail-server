@@ -33,6 +33,10 @@ export default class CategoriesRoute extends Route {
     // Member & User states
     this.router.get('/:categoryID/members', members.getMembers.bind(members));
     this.router.get('/:categoryID/users/:userID', users.getUser.bind(users));
+    this.router.get(
+      '/:categoryID/users/:userID/history',
+      users.getHistory.bind(users),
+    );
 
     // Channel states
     this.router.get(
