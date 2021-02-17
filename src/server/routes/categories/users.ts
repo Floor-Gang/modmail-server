@@ -2,7 +2,7 @@ import { Response, Router } from 'express';
 import { RequestWithCategory } from '../../../common/models/types';
 import ModmailServer from '../../../server';
 import Route from '../route';
-import { UserState } from '@Floor-Gang/modmail-types';
+import { RoleLevel, UserState } from '@Floor-Gang/modmail-types';
 
 export default class UsersRoute extends Route {
   constructor(mm: ModmailServer) {
@@ -25,11 +25,25 @@ export default class UsersRoute extends Route {
     req: RequestWithCategory,
     res: Response,
   ): Promise<void> {
+    const { member } = req.session;
+
+    if (member === undefined) {
+      this.failUnknown(res);
+      return;
+    }
+
     const { categoryID, userID } = req.params;
     const pool = this.modmail.getDB();
-    const data = await pool.threads.history(userID, categoryID);
+    let threads = await pool.threads.history(userID, categoryID);
 
-    res.json(data);
+    threads = threads.filter((th) => {
+      if (th.isAdminOnly) {
+        return member.role === RoleLevel.Admin;
+      }
+      return true;
+    });
+
+    res.json(threads);
     res.end();
   }
 }
