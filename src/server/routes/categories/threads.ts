@@ -3,6 +3,7 @@ import { RequestWithCategory, RequestWithUser } from '../../../common/models/typ
 import ModmailServer from '../../../server';
 import Route from '../route';
 import { Message, RoleLevel, Thread, UserState, UserStateCache, } from '@Floor-Gang/modmail-types';
+import { DatabaseManager } from '@Floor-Gang/modmail-database';
 
 export default class ThreadsRoute extends Route {
   constructor(mm: ModmailServer) {
@@ -92,7 +93,7 @@ export default class ThreadsRoute extends Route {
       return (thr.isAdminOnly && member.role === RoleLevel.Admin)
         || (!thr.isAdminOnly);
     })
-    threads = await this.getLastMessages(threads);
+    threads = await ThreadsRoute.getLastMessages(db, threads);
     let targets = new Set<string>();
 
     // get user cache
@@ -140,8 +141,10 @@ export default class ThreadsRoute extends Route {
     return res;
   }
 
-  private async getLastMessages(threads: Thread[]): Promise<Thread[]> {
-    const db = this.modmail.getDB();
+  public static async getLastMessages(
+    db: DatabaseManager,
+    threads: Thread[],
+  ): Promise<Thread[]> {
     const msgTasks: Promise<Message | null>[] = [];
 
     for (let i = 0; i < threads.length; i++) {

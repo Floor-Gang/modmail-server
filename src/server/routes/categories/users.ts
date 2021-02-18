@@ -2,7 +2,8 @@ import { Response, Router } from 'express';
 import { RequestWithCategory } from '../../../common/models/types';
 import ModmailServer from '../../../server';
 import Route from '../route';
-import { RoleLevel, UserState } from '@Floor-Gang/modmail-types';
+import { Message, RoleLevel, UserState } from '@Floor-Gang/modmail-types';
+import ThreadsRoute from './threads';
 
 export default class UsersRoute extends Route {
   constructor(mm: ModmailServer) {
@@ -37,11 +38,10 @@ export default class UsersRoute extends Route {
     let threads = await pool.threads.history(userID, categoryID);
 
     threads = threads.filter((th) => {
-      if (th.isAdminOnly) {
-        return member.role === RoleLevel.Admin;
-      }
-      return true;
+      return (th.isAdminOnly && member.role === RoleLevel.Admin)
+        || (!th.isAdminOnly);
     });
+    threads = await ThreadsRoute.getLastMessages(pool, threads);
 
     res.json(threads);
     res.end();
