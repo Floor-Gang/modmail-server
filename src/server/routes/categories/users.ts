@@ -2,8 +2,7 @@ import { Response, Router } from 'express';
 import { RequestWithCategory } from '../../../common/models/types';
 import ModmailServer from '../../../server';
 import Route from '../route';
-import { Message, RoleLevel, UserState } from '@Floor-Gang/modmail-types';
-import ThreadsRoute from './threads';
+import { RoleLevel, UserState } from '@Floor-Gang/modmail-types';
 
 export default class UsersRoute extends Route {
   constructor(mm: ModmailServer) {
@@ -35,15 +34,25 @@ export default class UsersRoute extends Route {
 
     const { categoryID, userID } = req.params;
     const pool = this.modmail.getDB();
+    const userIDs = new Set<string>();
     let threads = await pool.threads.history(userID, categoryID);
 
     threads = threads.filter((th) => {
-      return (th.isAdminOnly && member.role === RoleLevel.Admin)
+      const passes = (th.isAdminOnly && member.role === RoleLevel.Admin)
         || (!th.isAdminOnly);
-    });
-    threads = await ThreadsRoute.getLastMessages(pool, threads);
 
-    res.json(threads);
+      if (passes) {
+        th.messages.forEach((msg) => userIDs.add(msg.sender));
+        userIDs.add(th.author.id);
+      }
+      return passes;
+    });
+    const users = this.modmail.getUserCache(userIDs.values());
+
+    res.json({
+      threads,
+      users,
+    });
     res.end();
   }
 }

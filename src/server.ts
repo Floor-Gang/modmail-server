@@ -12,6 +12,7 @@ import { DatabaseManager } from '@Floor-Gang/modmail-database';
 import { RequestWithUser } from './common/models/types';
 import Config from './common/config';
 import BotController from './bot';
+import { Message, Thread, UserState, UserStateCache } from '@Floor-Gang/modmail-types';
 
 export default class ModmailServer {
   private readonly bot: BotController;
@@ -33,8 +34,6 @@ export default class ModmailServer {
 
   /**
    * This method must be called before all else can happen
-   * @param {PoolConfig} config For the database
-   * @param {number} port Port to listen on for the express server
    */
   public async start() {
     ModmailServer.db = await DatabaseManager.getDB(this.config.database);
@@ -67,6 +66,7 @@ export default class ModmailServer {
    * Check if they're logged in & attach their user data to the req object
    * @param {RequestWithUser} req
    * @param {Response} res
+   * @param next
    * @returns {Promise<void>}
    */
   public authenticate(
@@ -93,6 +93,52 @@ export default class ModmailServer {
       return ModmailServer.db;
     }
     throw new Error('getDB was called before starting ModmailServer');
+  }
+
+  public async getUserCache(targets: Iterator<string>): Promise<UserStateCache> {
+    const bot = this.getBot();
+    const usrTasks: Promise<UserState | null>[] = [];
+
+    let userID = targets.next();
+    while (!userID.done) {
+      const task = bot.getUser(userID.value, true);
+      usrTasks.push(task);
+      userID = targets.next();
+    }
+
+    const users = await Promise.all(usrTasks);
+    let res: UserStateCache = {};
+
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      if (user !== null) {
+        res[user.id] = user;
+      }
+    }
+
+    return res;
+  }
+
+  public async getLastMessages(threads: Thread[]): Promise<Thread[]> {
+    const msgTasks: Promise<Message | null>[] = [];
+    const pool = this.getDB();
+
+    for (let i = 0; i < threads.length; i++) {
+      const thread = threads[i];
+      const task = pool.messages.fetchLast(thread.id);
+      msgTasks.push(task);
+    }
+
+    const msgs = await Promise.all(msgTasks);
+
+    for (let i = 0; i < threads.length; i++) {
+      const msg = msgs[i];
+      if (msg !== null) {
+        threads[i].messages.push(msg);
+      }
+    }
+
+    return threads;
   }
 
   public getBot(): BotController {

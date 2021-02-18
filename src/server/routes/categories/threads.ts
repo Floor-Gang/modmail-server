@@ -2,8 +2,7 @@ import { Response, Router } from 'express';
 import { RequestWithCategory, RequestWithUser } from '../../../common/models/types';
 import ModmailServer from '../../../server';
 import Route from '../route';
-import { Message, RoleLevel, Thread, UserState, UserStateCache, } from '@Floor-Gang/modmail-types';
-import { DatabaseManager } from '@Floor-Gang/modmail-database';
+import { RoleLevel } from '@Floor-Gang/modmail-types';
 
 export default class ThreadsRoute extends Route {
   constructor(mm: ModmailServer) {
@@ -59,7 +58,7 @@ export default class ThreadsRoute extends Route {
       targets.add(msg.sender);
     }
 
-    const users = await this.getUserCache(targets.values());
+    const users = await this.modmail.getUserCache(targets.values());
 
     res.json({
       ...thread,
@@ -93,7 +92,7 @@ export default class ThreadsRoute extends Route {
       return (thr.isAdminOnly && member.role === RoleLevel.Admin)
         || (!thr.isAdminOnly);
     })
-    threads = await ThreadsRoute.getLastMessages(db, threads);
+    threads = await this.modmail.getLastMessages(threads);
     let targets = new Set<string>();
 
     // get user cache
@@ -108,60 +107,12 @@ export default class ThreadsRoute extends Route {
       }
     }
 
-    let users = await this.getUserCache(targets.values());
+    let users = await this.modmail.getUserCache(targets.values());
 
     res.json({
       threads,
       users,
     });
     res.end();
-  }
-
-  private async getUserCache(targets: Iterator<string>): Promise<UserStateCache> {
-    const bot = this.modmail.getBot();
-    const usrTasks: Promise<UserState | null>[] = [];
-
-    let userID = targets.next();
-    while (!userID.done) {
-      const task = bot.getUser(userID.value, true);
-      usrTasks.push(task);
-      userID = targets.next();
-    }
-
-    const users = await Promise.all(usrTasks);
-    let res: UserStateCache = {};
-
-    for (let i = 0; i < users.length; i++) {
-      const user = users[i];
-      if (user !== null) {
-        res[user.id] = user;
-      }
-    }
-
-    return res;
-  }
-
-  public static async getLastMessages(
-    db: DatabaseManager,
-    threads: Thread[],
-  ): Promise<Thread[]> {
-    const msgTasks: Promise<Message | null>[] = [];
-
-    for (let i = 0; i < threads.length; i++) {
-      const thread = threads[i];
-      const task = db.messages.fetchLast(thread.id);
-      msgTasks.push(task);
-    }
-
-    const msgs = await Promise.all(msgTasks);
-
-    for (let i = 0; i < threads.length; i++) {
-      const msg = msgs[i];
-      if (msg !== null) {
-        threads[i].messages.push(msg);
-      }
-    }
-
-    return threads;
   }
 }
