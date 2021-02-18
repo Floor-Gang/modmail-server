@@ -47,6 +47,7 @@ export default class UsersRoute extends Route {
       }
       return passes;
     });
+    threads = await this.modmail.getLastMessages(threads);
     const users = this.modmail.getUserCache(userIDs.values());
 
     res.json({
