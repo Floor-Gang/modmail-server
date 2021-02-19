@@ -1,14 +1,13 @@
-import ModmailServer from '../server';
-import { Guild, RequestWithSession } from '../../common/models/types';
-import { Category, Thread, Message } from 'modmail-types';
+import ModmailServer from '../../server';
+import MembersRoute from './categories/members';
+import UsersRoute from './categories/users';
+import ThreadsRoute from './categories/threads';
+import { RequestWithCategory, RequestWithUser } from '../../common/models/types';
+import { Category, RoleLevel } from '@Floor-Gang/modmail-types';
 import Route from './route';
-import {
-  NextFunction,
-  Response,
-  Router,
-} from 'express';
-import got from 'got/dist/source';
-import { CategoryResolvable } from 'modmail-database';
+import { NextFunction, Response, Router, } from 'express';
+import RolesRoute from './categories/roles';
+import ChannelsRoute from './categories/channels';
 
 export default class CategoriesRoute extends Route {
   constructor(mm: ModmailServer) {
@@ -17,64 +16,98 @@ export default class CategoriesRoute extends Route {
   }
 
   public getRouter(): Router {
-    this.router.use('/', this.getGuilds.bind(this));
+    const members = new MembersRoute(this.modmail);
+    const threads = new ThreadsRoute(this.modmail);
+    const roles = new RolesRoute(this.modmail);
+    const channels = new ChannelsRoute(this.modmail);
+    const users = new UsersRoute(this.modmail);
+
     this.router.get('/', this.getCategories.bind(this));
-    this.router.get('/:categoryID/threads', this.getThreads.bind(this));
+    this.router.use('/:categoryID', this.authenticate.bind(this));
+    this.router.get('/:categoryID', this.getCategory.bind(this));
+
+    // Thread Endpoints
+    this.router.get('/:categoryID/threads', threads.getThreads.bind(threads));
+    this.router.get('/:categoryID/threads/:threadID', threads.getThread.bind(threads));
+
+    // Member & User states
+    this.router.get('/:categoryID/members', members.getMembers.bind(members));
+    this.router.get('/:categoryID/users/:userID', users.getUser.bind(users));
     this.router.get(
-      '/:categoryID/threads/:threadID',
-      this.getThread.bind(this),
+      '/:categoryID/users/:userID/history',
+      users.getHistory.bind(users),
+    );
+
+    // Channel states
+    this.router.get(
+      '/:categoryID/channels/:channelID',
+      channels.getChannel.bind(channels),
+    );
+
+    // Role states
+    this.router.get(
+      '/:categoryID/roles/:roleID',
+      roles.getRole.bind(roles),
     );
     return this.router;
   }
 
-  /**
-   * Middle ware for getting a user's guilds
-   */
-  private async getGuilds(
-    req: RequestWithSession,
+  private async authenticate(
+    req: RequestWithCategory,
     res: Response,
     next: NextFunction,
   ): Promise<void> {
-    const { user } = req.session;
-
-    if (user === undefined) {
+    if (req.session.user === undefined) {
+      // TODO: add proper logger
+      console.error('How did we get here?');
       this.failUnknown(res);
       return;
     }
 
-    try {
-      // TODO: add caching
-      const gotRes = await got(
-        'https://discord.com/api/v8/users/@me/guilds',
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          }
-        }
-      );
-      const data: Guild[] = JSON.parse(gotRes.body);
-      req.session.guilds = data;
-      // TODO: add proper logger
-      req.session.save(console.error);
-      next();
-    } catch (e) {
-      this.failError(res, e);
+    const { categoryID } = req.params;
+    const { user } = req.session;
+    const bot = this.modmail.getBot();
+    const pool = this.modmail.getDB();
+    const cat = await pool.categories.fetchByID(categoryID);
+
+    if (cat === null) {
+      this.failBadReq(res, 'This category ID doesn\'t exist');
+      return;
     }
+
+    const member = await bot.getMember(
+      cat.guildID,
+      req.session.user.id,
+    );
+
+    if (member.role !== 'mod' && member.role !== 'admin') {
+      res.status(401);
+      res.end();
+      return;
+    }
+
+
+    req.session.member = {
+      ...user,
+      role: member.role === 'mod' ? RoleLevel.Mod : RoleLevel.Admin,
+    };
+    req.session.category = cat;
+    next();
   }
 
   /**
    * GET /categories -> Category[]
-   * @param {RequestWithSession} req
+   * @param {RequestWithUser} req
    * @param {Response} res
    * @returns {Promise<void>}
    */
   private async getCategories(
-    req: RequestWithSession,
+    req: RequestWithUser,
     res: Response,
   ): Promise<void> {
-    const { guilds } = req.session;
+    const { guildIDs } = req.session;
 
-    if (guilds === undefined) {
+    if (guildIDs === undefined) {
       this.failUnknown(res);
       return;
     }
@@ -82,12 +115,9 @@ export default class CategoriesRoute extends Route {
     const db = this.modmail.getDB();
     const fetchTasks: Promise<Category | null>[] = [];
 
-    for (let i = 0; i < guilds.length; i++) {
-      const guild = guilds[i];
-      const fetchTask = db.categories.fetch(
-        CategoryResolvable.guild,
-        guild.id
-      );
+    for (let i = 0; i < guildIDs.length; i++) {
+      const guildID = guildIDs[i];
+      const fetchTask = db.categories.fetchByGuild(guildID);
       fetchTasks.push(fetchTask);
     }
 
@@ -104,97 +134,26 @@ export default class CategoriesRoute extends Route {
   }
 
   /**
-   * GET /api/categories/{category ID} -> Thread[]
-   * @param {RequestWithSession} req
-   * @param {Response} res
-   * @param {string} categoryID
-   * @returns {Promise<void>}
-   */
-  private async getThreads(
-    req: RequestWithSession,
-    res: Response,
-  ): Promise<void> {
-    const { guilds } = req.session;
-    const { categoryID } = req.params;
-
-    if (guilds === undefined) {
-      this.failUnknown(res);
-      return;
-    }
-
-    const guildIDs = guilds.map((g) => g.id);
-    const db = this.modmail.getDB();
-    const category = await db.categories.fetch(
-      CategoryResolvable.id,
-      categoryID,
-    );
-
-    if (category === null || !guildIDs.includes(category.guildID)) {
-      this.failBadReq(
-        res,
-        "The category requested doesn't exist or the user isn't in it",
-      );
-      return;
-    }
-
-    const resData = await db.threads.getByCategory(categoryID);
-    const msgTasks: Promise<Message[]>[] = [];
-
-    for (let i = 0; i < resData.length; i++) {
-      const thread = resData[i];
-      const task = db.messages.fetchAll(thread.id);
-      msgTasks.push(task);
-      task.then((msgs: Message[]) => resData[i].messages = msgs);
-    }
-
-    await Promise.all(msgTasks);
-
-    res.json(resData);
-    res.end();
-  }
-
-  /**
-   * GET /categories/{category ID}/{thread ID} -> Thread
-   * @param {RequestWithSession} req
+   * GET /categories/:categoryID -> Category
+   * @param {RequestWithUser} req
    * @param {Response} res
    * @returns {Promise<void>}
    */
-  private async getThread(
-    req: RequestWithSession,
+  private async getCategory(
+    req: RequestWithUser,
     res: Response,
   ): Promise<void> {
     const { categoryID } = req.params;
-    const { threadID } = req.params;
-    const { guilds } = req.session;
-
-    if (guilds === undefined) {
-      this.failUnknown(res);
-      return;
-    }
 
     const db = this.modmail.getDB();
-    const guildIDs = guilds.map((g) => g.id);
-    const category = await db.categories.fetch(
-      CategoryResolvable.id,
-      categoryID,
-    );
+    const category = await db.categories.fetchByID(categoryID);
 
-    if (category === null || !guildIDs.includes(category.guildID)) {
-      this.failBadReq(
-        res,
-        "The category requested doesn't exist or the user isn't in it",
-      );
+    if (category === null) {
+      this.failBadReq(res, `The category ID "${categoryID}" doesn't exist.`);
       return;
     }
-    const resData = await db.threads.getByID(threadID);
 
-    if (resData !== null) {
-      resData.messages = await db.messages.fetchAll(threadID);
-      res.json(resData);
-      res.end();
-      return;
-    }
-    res.status(404);
+    res.json(category);
     res.end();
   }
 }

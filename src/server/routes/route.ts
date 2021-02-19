@@ -1,5 +1,5 @@
-import { Response, Router } from 'express';
-import ModmailServer from '../server';
+import { Request, Response, Router } from 'express';
+import ModmailServer from '../../server';
 
 export default class Route {
   protected readonly name: string;
@@ -16,6 +16,20 @@ export default class Route {
 
   public getRouter(): Router {
     return this.router;
+  }
+
+  protected async sendState<T>(
+    res: Response,
+    data: T | null,
+  ): Promise<void> {
+    if (data === null) {
+      res.status(204);
+      res.end();
+      return;
+    }
+
+    res.json(data);
+    res.end();
   }
 
   protected failBadReq(res: Response, context?: string) {
