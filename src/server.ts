@@ -51,7 +51,7 @@ export default class ModmailServer {
     }));
     this.app.use('/', oauth.getRouter());
 
-    this.app.use('/api/logout', logout.getRouter);
+    this.app.use('/api/logout', logout.getRouter());
     this.app.use('/api/self', this.authenticate.bind(this));
     this.app.use('/api/self', self.getRouter());
 
