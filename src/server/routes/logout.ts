@@ -19,8 +19,10 @@ export default class LogoutRoute extends Route {
     return this.router;
   }
 
-  private static async root(req: RequestWithUser, _: Response) {
+  private static async root(req: RequestWithUser, res: Response) {
     // TODO: Add proper logger
     req.session.destroy(console.error);
+    res.status(200);
+    res.end();
   }
 }
