@@ -25,7 +25,11 @@ export type Guild = {
   features: string[];
 }
 
-export interface UserSession extends Session {
+export interface RedirSession extends Session {
+  redirect?: string;
+}
+
+export interface UserSession extends RedirSession {
   user?: User;
   guildIDs?: string[];
 }
@@ -33,6 +37,10 @@ export interface UserSession extends Session {
 export interface CategorySession extends UserSession {
   category?: Category;
   member?: Member,
+}
+
+export interface RequestWithRedirect<a = any, b = any, c = any, d = any> extends Request<a, b, c, d> {
+  session: RedirSession;
 }
 
 export interface RequestWithUser<a = any, b = any, c = any, d = any> extends Request<a, b, c, d> {
