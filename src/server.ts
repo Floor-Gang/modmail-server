@@ -13,6 +13,7 @@ import { RequestWithUser } from './common/models/types';
 import Config from './common/config';
 import BotController from './bot';
 import { Message, Thread, UserState, UserStateCache } from '@Floor-Gang/modmail-types';
+import LogoutRoute from './server/routes/logout';
 
 export default class ModmailServer {
   private readonly bot: BotController;
@@ -40,6 +41,7 @@ export default class ModmailServer {
     const oauth = new OAuthRoute(this);
     const categories = new CategoriesRoute(this);
     const self = new SelfRoute(this);
+    const logout = new LogoutRoute(this);
 
     this.app.use(session({
       secret: this.config.sesPrivateKey,
@@ -49,6 +51,7 @@ export default class ModmailServer {
     }));
     this.app.use('/', oauth.getRouter());
 
+    this.app.use('/api/logout', logout.getRouter);
     this.app.use('/api/self', this.authenticate.bind(this));
     this.app.use('/api/self', self.getRouter());
 

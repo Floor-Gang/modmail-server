@@ -1,0 +1,26 @@
+import {
+  Response,
+  Router,
+} from 'express';
+import ModmailServer from '../../server';
+import Route from './route';
+import { RequestWithUser } from '../../common/models/types';
+
+
+export default class LogoutRoute extends Route {
+  constructor(mm: ModmailServer) {
+    const router = Router();
+    super(mm, 'logout', router);
+  }
+
+  public getRouter(): Router {
+    this.router.post('/', LogoutRoute.root.bind(this));
+
+    return this.router;
+  }
+
+  private static async root(req: RequestWithUser, _: Response) {
+    // TODO: Add proper logger
+    req.session.destroy(console.error);
+  }
+}
