@@ -97,6 +97,7 @@ export default class OAuthRoute extends Route {
 
       res.redirect(redirection);
       delete req.session.redirect;
+      req.session.save(console.error);
     } catch (e) {
       this.failError(res, e);
     } finally {
